@@ -83,6 +83,8 @@ Write-Host "🎉 설치 끝! 터미널(VS Code 등)을 완전히 껐다 켠 뒤�
 
 ```
 C:\Users\{사용자명}\.claude\skills\
+├── my-skill-creator\
+│   └── SKILL.md
 ├── perf-analyzer\
 │   └── SKILL.md
 └── project-ideator\

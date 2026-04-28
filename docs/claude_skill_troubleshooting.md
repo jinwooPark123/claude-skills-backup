@@ -82,3 +82,45 @@
    - **Claude Code 터미널**: `/my-skill-creator` 명령어로 요청 (전용 스킬의 하드코딩 규칙이 알아서 방어)
 
 이로써 플러그인 업데이트 시 스킬이 통째로 날아가는 데이터 유실 위험을 완전히 제거하면서도, 맥의 자동화된 편리함(심볼릭 링크)은 그대로 가져온 **궁극의 전문가용 세팅**이 마무리되었습니다.
+
+---
+
+## 6. 추가 검증 및 정리 (2026-04-28)
+
+전체 환경을 재점검하는 과정에서 발견된 추가 이슈 2건을 정리했습니다.
+
+### 🐛 버그 수정: ag-skills.ps1 심볼릭 링크 방식 오류
+
+- **발견**: 기존 설치된 `ag-skills.ps1`이 `New-Item -ItemType SymbolicLink` 방식을 사용하고 있었음.
+- **문제**: 이 방식은 개발자 모드와 무관하게 **관리자 권한을 별도로 요구**하여 에러 발생.
+- **수정**: `cmd /c "mklink /D"` 방식으로 교체. 개발자 모드만 활성화되어 있으면 관리자 권한 없이 동작.
+
+```powershell
+# 수정 전 (버그)
+New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+
+# 수정 후 (정상)
+cmd /c "mklink /D `"$target`" `"$source`"" | Out-Null
+```
+
+> `terminal_guide_and_skill_script.md`의 설치 스크립트는 처음부터 올바른 방식으로 작성되어 있으나,
+> 실제 설치된 `ag-skills.ps1` 파일은 구버전이었음. 재설치 시 위 스크립트 기준으로 진행할 것.
+
+### 🗑️ 잔재 파일 정리: `~/.claude/skills/marketplace.json` 삭제
+
+- **발견**: `C:\Users\{user}\.claude\skills\marketplace.json` 파일이 존재했음.
+- **내용**: `perf-analyzer`, `project-ideator`가 `./skills/perf-analyzer` 경로로 등록되어 있었으나, 실제 파일 위치(`./perf-analyzer`)와 경로 불일치.
+- **현재 영향**: 없음 (Claude Code는 디렉토리 직접 스캔으로 스킬을 인식하므로 이 파일은 무시됨).
+- **잠재 위험**: Claude Code 내부 동작 변경 시 혼란 유발 가능.
+- **조치**: 파일 삭제 완료.
+
+### 📦 GitHub 백업 구축
+
+스킬 파일의 비재현성 문제(AI와 대화로 만든 결과물은 날아가도 똑같이 재현 불가)에 대응하기 위해 GitHub 백업 저장소를 구축했습니다.
+
+- **저장소**: `https://github.com/jinwooPark123/claude-skills-backup` (비공개)
+- **포함 내용**:
+  - `skills/` — 커스텀 스킬 SKILL.md 파일 전체
+  - `docs/` — 본 문서 및 터미널 가이드
+- **로컬 경로**: `C:\Users\{user}\claude-skills-backup\`
+- **업데이트 방법**: 스킬 추가/수정 시 해당 폴더에서 `git add . && git commit && git push` 실행
